@@ -13,6 +13,7 @@ interface UseQuizTimerProps {
   setShowAnswer: React.Dispatch<React.SetStateAction<boolean>>;
   autoAdvanceTimer: React.MutableRefObject<NodeJS.Timeout | null>;
   handleNextQuestion: () => void;
+  isCorrectAnswer: boolean;
 }
 
 export default function useQuizTimer({
@@ -27,6 +28,7 @@ export default function useQuizTimer({
   setShowAnswer,
   autoAdvanceTimer,
   handleNextQuestion,
+  isCorrectAnswer,
 }: UseQuizTimerProps) {
   const delayIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -43,40 +45,27 @@ export default function useQuizTimer({
   useEffect(() => {
     if (quizEnded) return;
 
-    if (!showAnswer) {
-      // Countdown for answering
-      if (timeLeft > 0) {
-        const timer = setInterval(() => {
+    // When showing answer
+    if (showAnswer) {
+      if (isCorrectAnswer) {
+        // Automatically advance after a brief delay for correct answers
+        autoAdvanceTimer.current = setTimeout(() => {
+          handleNextQuestion();
+        }, 1500);
+      } else {
+        // Start countdown for incorrect answers
+        setTimeLeft(INCORRECT_ANSWER_DELAY);
+        delayIntervalRef.current = setInterval(() => {
           setTimeLeft((prev) => {
             if (prev <= 1) {
-              clearInterval(timer);
-              setShowAnswer(true);
+              clearInterval(delayIntervalRef.current!);
               return 0;
             }
             return prev - 1;
           });
         }, 1000);
-        return () => clearInterval(timer);
-      } else {
-        setShowAnswer(true);
       }
-    } else if (answers[currentQuestionIndex] === undefined && timeLeft === INCORRECT_ANSWER_DELAY) {
-      // Start auto-advance timer for incorrect or timeout
-      autoAdvanceTimer.current = setTimeout(() => {
-        handleNextQuestion();
-      }, INCORRECT_ANSWER_DELAY * 1000);
-      
-      // Start countdown display
-      delayIntervalRef.current = setInterval(() => {
-        setTimeLeft((prev) => {
-          if (prev <= 1) {
-            clearInterval(delayIntervalRef.current!);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-      
+
       return () => {
         if (autoAdvanceTimer.current) {
           clearTimeout(autoAdvanceTimer.current);
@@ -86,12 +75,26 @@ export default function useQuizTimer({
         }
       };
     }
+    
+    // Normal question countdown
+    if (!showAnswer && timeLeft > 0) {
+      const timer = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            setShowAnswer(true);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(timer);
+    }
   }, [
     showAnswer,
     timeLeft,
     quizEnded,
-    answers,
-    currentQuestionIndex,
+    isCorrectAnswer,
     INCORRECT_ANSWER_DELAY,
     setShowAnswer,
     setTimeLeft,

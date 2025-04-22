@@ -22,7 +22,6 @@ const Quiz = () => {
   const roomCode = searchParams.get("room") || "";
   const isHost = searchParams.get("host") === "true" || sessionStorage.getItem("isHost") === "true";
 
-  // Use extracted state management hook
   const {
     questions,
     currentQuestionIndex,
@@ -40,12 +39,12 @@ const Quiz = () => {
   } = useQuizState();
 
   const [timeLeft, setTimeLeft] = useState(QUESTION_TIME);
+  const [isCorrectAnswer, setIsCorrectAnswer] = useState(false);
 
   const playerName = sessionStorage.getItem("playerName") || "Player";
   const totalQuestions = questions.length;
   const currentQuestion = questions[currentQuestionIndex];
 
-  // Session/player/room setup code
   useEffect(() => {
     if (!roomCode) {
       toast({
@@ -77,7 +76,6 @@ const Quiz = () => {
     return JSON.parse(sessionStorage.getItem(`scores_${roomCode}`) || "[]");
   }, [roomCode]);
 
-  // Reset timer for each question/quiz state
   useEffect(() => {
     if (autoAdvanceTimer.current) {
       clearTimeout(autoAdvanceTimer.current);
@@ -86,7 +84,6 @@ const Quiz = () => {
     if (!quizEnded) setTimeLeft(QUESTION_TIME);
   }, [currentQuestionIndex, quizEnded, autoAdvanceTimer, quizEnded]);
 
-  // Timer/auto-advance logic
   useQuizTimer({
     showAnswer,
     quizEnded,
@@ -107,6 +104,7 @@ const Quiz = () => {
         setCurrentQuestionIndex(currentQuestionIndex + 1);
         setShowAnswer(false);
         setTimeLeft(QUESTION_TIME);
+        setIsCorrectAnswer(false);
       } else {
         setQuizEnded(true);
       }
@@ -119,6 +117,7 @@ const Quiz = () => {
       setQuizEnded,
       setTimeLeft,
     ]),
+    isCorrectAnswer,
   });
 
   const handleAnswer = (selectedIndex: number) => {
@@ -126,23 +125,24 @@ const Quiz = () => {
     newAnswers[currentQuestionIndex] = selectedIndex;
     setAnswers(newAnswers);
 
-    if (selectedIndex === currentQuestion.correctAnswer) {
+    const correct = selectedIndex === currentQuestion.correctAnswer;
+    setIsCorrectAnswer(correct);
+
+    if (correct) {
       setScore(score + 1);
       toast({
         title: "Correct!",
         description: "You got it right!",
         variant: "default",
       });
-      setShowAnswer(true);
     } else {
       toast({
         title: "Incorrect",
         description: "That's not the right answer.",
         variant: "destructive",
       });
-      setShowAnswer(true);
-      setTimeLeft(INCORRECT_ANSWER_DELAY);
     }
+    setShowAnswer(true);
   };
 
   const handleBackToLobby = () => {
@@ -187,6 +187,7 @@ const Quiz = () => {
                       setCurrentQuestionIndex(currentQuestionIndex + 1);
                       setShowAnswer(false);
                       setTimeLeft(QUESTION_TIME);
+                      setIsCorrectAnswer(false);
                       if (autoAdvanceTimer.current) {
                         clearTimeout(autoAdvanceTimer.current);
                         autoAdvanceTimer.current = null;
