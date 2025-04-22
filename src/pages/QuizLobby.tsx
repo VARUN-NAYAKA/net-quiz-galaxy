@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,6 +28,13 @@ const QuizLobby = () => {
       creator: scores.length > 0 ? scores[0].name : "(unknown)"
     };
   });
+
+  const handleJoinRoom = (roomCode: string) => {
+    // Set room code in session storage
+    sessionStorage.setItem('roomCode', roomCode);
+    // Navigate to the quiz
+    navigate(`/quiz?room=${roomCode}`);
+  };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-600 via-purple-600 to-blue-700 p-4">
@@ -80,13 +86,20 @@ const QuizLobby = () => {
             ) : (
               <ul className="space-y-2">
                 {availableRooms.map(room => (
-                  <li key={room.roomCode} className="flex justify-between items-center px-3 py-2 rounded bg-muted text-muted-foreground">
+                  <li key={room.roomCode} className="flex justify-between items-center px-3 py-2 rounded bg-muted">
                     <span>
                       <span className="font-semibold text-foreground">{room.roomCode}</span>
                       <span className="mx-2">|</span>
                       <span className="italic">Created by: </span>
                       <span className="font-medium">{room.creator}</span>
                     </span>
+                    <Button 
+                      onClick={() => handleJoinRoom(room.roomCode)}
+                      size="sm"
+                      className="bg-primary hover:bg-primary/90"
+                    >
+                      Join Room
+                    </Button>
                   </li>
                 ))}
               </ul>

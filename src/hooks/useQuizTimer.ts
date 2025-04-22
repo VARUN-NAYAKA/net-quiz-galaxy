@@ -60,8 +60,13 @@ export default function useQuizTimer({
       } else {
         setShowAnswer(true);
       }
-    } else if (showAnswer && answers[currentQuestionIndex] === undefined && timeLeft === INCORRECT_ANSWER_DELAY) {
-      // Start the post-answer/timeout interval only ONCE (for incorrect)
+    } else if (answers[currentQuestionIndex] === undefined && timeLeft === INCORRECT_ANSWER_DELAY) {
+      // Start auto-advance timer for incorrect or timeout
+      autoAdvanceTimer.current = setTimeout(() => {
+        handleNextQuestion();
+      }, INCORRECT_ANSWER_DELAY * 1000);
+      
+      // Start countdown display
       delayIntervalRef.current = setInterval(() => {
         setTimeLeft((prev) => {
           if (prev <= 1) {
@@ -71,14 +76,14 @@ export default function useQuizTimer({
           return prev - 1;
         });
       }, 1000);
-      autoAdvanceTimer.current = setTimeout(() => {
-        handleNextQuestion();
-        if (delayIntervalRef.current) {
-          clearInterval(delayIntervalRef.current!);
-        }
-      }, INCORRECT_ANSWER_DELAY * 1000);
+      
       return () => {
-        clearInterval(delayIntervalRef.current!);
+        if (autoAdvanceTimer.current) {
+          clearTimeout(autoAdvanceTimer.current);
+        }
+        if (delayIntervalRef.current) {
+          clearInterval(delayIntervalRef.current);
+        }
       };
     }
   }, [

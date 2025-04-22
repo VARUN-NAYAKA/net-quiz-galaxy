@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -135,16 +134,6 @@ const Quiz = () => {
         variant: "default",
       });
       setShowAnswer(true);
-      setTimeLeft(0);
-      autoAdvanceTimer.current = setTimeout(() => {
-        if (currentQuestionIndex < totalQuestions - 1) {
-          setCurrentQuestionIndex(currentQuestionIndex + 1);
-          setShowAnswer(false);
-          setTimeLeft(QUESTION_TIME);
-        } else {
-          setQuizEnded(true);
-        }
-      }, 1000);
     } else {
       toast({
         title: "Incorrect",
@@ -153,16 +142,6 @@ const Quiz = () => {
       });
       setShowAnswer(true);
       setTimeLeft(INCORRECT_ANSWER_DELAY);
-      // Timer to move to next question after 10 seconds for incorrect answer
-      autoAdvanceTimer.current = setTimeout(() => {
-        if (currentQuestionIndex < totalQuestions - 1) {
-          setCurrentQuestionIndex(currentQuestionIndex + 1);
-          setShowAnswer(false);
-          setTimeLeft(QUESTION_TIME);
-        } else {
-          setQuizEnded(true);
-        }
-      }, INCORRECT_ANSWER_DELAY * 1000);
     }
   };
 
@@ -204,18 +183,19 @@ const Quiz = () => {
               <div className="flex justify-center mt-4">
                 <Button
                   onClick={() => {
-                    if (autoAdvanceTimer.current) return;
-                    // Only allow manual next if timer hasn't been scheduled
                     if (currentQuestionIndex < totalQuestions - 1) {
                       setCurrentQuestionIndex(currentQuestionIndex + 1);
                       setShowAnswer(false);
                       setTimeLeft(QUESTION_TIME);
+                      if (autoAdvanceTimer.current) {
+                        clearTimeout(autoAdvanceTimer.current);
+                        autoAdvanceTimer.current = null;
+                      }
                     } else {
                       setQuizEnded(true);
                     }
                   }}
                   className="bg-primary hover:bg-primary/90"
-                  disabled={autoAdvanceTimer.current !== null}
                 >
                   {currentQuestionIndex < totalQuestions - 1
                     ? "Next Question"
