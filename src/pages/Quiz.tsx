@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -15,7 +14,6 @@ import useQuizTimer from "@/hooks/useQuizTimer";
 import { useQuiz } from "@/hooks/useQuiz";
 
 const QUESTION_TIME = 20;
-const INCORRECT_ANSWER_DELAY = 10;
 
 const Quiz = () => {
   const location = useLocation();
@@ -87,7 +85,6 @@ const Quiz = () => {
     quizEnded,
     answers,
     currentQuestionIndex,
-    INCORRECT_ANSWER_DELAY,
     QUESTION_TIME,
     timeLeft,
     setTimeLeft,

@@ -6,7 +6,6 @@ interface UseQuizTimerProps {
   quizEnded: boolean;
   answers: number[];
   currentQuestionIndex: number;
-  INCORRECT_ANSWER_DELAY: number;
   QUESTION_TIME: number;
   timeLeft: number;
   setTimeLeft: React.Dispatch<React.SetStateAction<number>>;
@@ -21,7 +20,6 @@ export default function useQuizTimer({
   quizEnded,
   answers,
   currentQuestionIndex,
-  INCORRECT_ANSWER_DELAY,
   QUESTION_TIME,
   timeLeft,
   setTimeLeft,
@@ -30,50 +28,19 @@ export default function useQuizTimer({
   handleNextQuestion,
   isCorrectAnswer,
 }: UseQuizTimerProps) {
-  const delayIntervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    // Clean up interval on component unmount or when changing questions
-    return () => {
-      if (delayIntervalRef.current) {
-        clearInterval(delayIntervalRef.current);
-        delayIntervalRef.current = null;
-      }
-    };
-  }, []);
-
   useEffect(() => {
     if (quizEnded) return;
 
     // When showing answer
-    if (showAnswer) {
-      if (isCorrectAnswer) {
-        // Automatically advance after a brief delay for correct answers
-        autoAdvanceTimer.current = setTimeout(() => {
-          handleNextQuestion();
-        }, 1500);
-      } else {
-        // Start countdown for incorrect answers
-        setTimeLeft(INCORRECT_ANSWER_DELAY);
-        delayIntervalRef.current = setInterval(() => {
-          setTimeLeft((prev) => {
-            if (prev <= 1) {
-              clearInterval(delayIntervalRef.current!);
-              // Auto advance to next question when timer reaches zero
-              setTimeout(() => handleNextQuestion(), 0);
-              return 0;
-            }
-            return prev - 1;
-          });
-        }, 1000);
-      }
+    if (showAnswer && isCorrectAnswer) {
+      // Automatically advance after a brief delay for correct answers
+      autoAdvanceTimer.current = setTimeout(() => {
+        handleNextQuestion();
+      }, 1500);
 
       return () => {
         if (autoAdvanceTimer.current) {
           clearTimeout(autoAdvanceTimer.current);
-        }
-        if (delayIntervalRef.current) {
-          clearInterval(delayIntervalRef.current);
         }
       };
     }
@@ -97,7 +64,6 @@ export default function useQuizTimer({
     timeLeft,
     quizEnded,
     isCorrectAnswer,
-    INCORRECT_ANSWER_DELAY,
     setShowAnswer,
     setTimeLeft,
     autoAdvanceTimer,
