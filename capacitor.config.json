@@ -1,0 +1,10 @@
+
+{
+  "appId": "app.lovable.4af74558a9a7443cad1a2768900d36d8",
+  "appName": "net-quiz-galaxy",
+  "server": {
+    "url": "",
+    "cleartext": true
+  },
+  "plugins": {}
+}
