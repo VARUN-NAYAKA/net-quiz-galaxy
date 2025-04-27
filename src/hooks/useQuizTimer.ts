@@ -59,6 +59,8 @@ export default function useQuizTimer({
           setTimeLeft((prev) => {
             if (prev <= 1) {
               clearInterval(delayIntervalRef.current!);
+              // Auto advance to next question when timer reaches zero
+              setTimeout(() => handleNextQuestion(), 0);
               return 0;
             }
             return prev - 1;
