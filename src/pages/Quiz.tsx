@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+
+import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import QuizQuestion from "@/components/QuizQuestion";
@@ -8,19 +9,21 @@ import { useToast } from "@/components/ui/use-toast";
 import ScoreBoard from "@/components/ScoreBoard";
 import QuizHeader from "@/components/QuizHeader";
 import QuizCompletion from "@/components/QuizCompletion";
+import QuizAnswerHandler from "@/components/QuizAnswerHandler";
 import useQuizState from "@/hooks/useQuizState";
 import useQuizTimer from "@/hooks/useQuizTimer";
+import { useQuiz } from "@/hooks/useQuiz";
 
 const QUESTION_TIME = 20;
 const INCORRECT_ANSWER_DELAY = 10;
 
 const Quiz = () => {
-  const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
   const searchParams = new URLSearchParams(location.search);
   const roomCode = searchParams.get("room") || "";
   const isHost = searchParams.get("host") === "true" || sessionStorage.getItem("isHost") === "true";
+  const playerName = sessionStorage.getItem("playerName") || "Player";
 
   const {
     questions,
@@ -41,40 +44,20 @@ const Quiz = () => {
   const [timeLeft, setTimeLeft] = useState(QUESTION_TIME);
   const [isCorrectAnswer, setIsCorrectAnswer] = useState(false);
 
-  const playerName = sessionStorage.getItem("playerName") || "Player";
+  const { handleRoomValidation, updateRoomScores, getRoomScores, handleBackToLobby } = useQuiz(roomCode, playerName);
+
   const totalQuestions = questions.length;
   const currentQuestion = questions[currentQuestionIndex];
 
+  // Room validation effect
   useEffect(() => {
-    if (!roomCode) {
-      toast({
-        title: "Error",
-        description: "Invalid room code. Please join through the lobby.",
-        variant: "destructive",
-      });
-      navigate("/lobby");
-    }
+    handleRoomValidation();
+  }, [handleRoomValidation]);
 
-    const roomScores = JSON.parse(sessionStorage.getItem(`scores_${roomCode}`) || "[]");
-    if (!roomScores.some((score: any) => score.name === playerName)) {
-      roomScores.push({ name: playerName, score: 0 });
-      sessionStorage.setItem(`scores_${roomCode}`, JSON.stringify(roomScores));
-    }
-  }, [roomCode, navigate, toast, playerName]);
-
+  // Score update effect
   useEffect(() => {
-    if (roomCode && playerName) {
-      const roomScores = JSON.parse(sessionStorage.getItem(`scores_${roomCode}`) || "[]");
-      const updatedScores = roomScores.map((playerScore: any) =>
-        playerScore.name === playerName ? { ...playerScore, score } : playerScore
-      );
-      sessionStorage.setItem(`scores_${roomCode}`, JSON.stringify(updatedScores));
-    }
-  }, [score, roomCode, playerName]);
-
-  const getRoomScores = useCallback(() => {
-    return JSON.parse(sessionStorage.getItem(`scores_${roomCode}`) || "[]");
-  }, [roomCode]);
+    updateRoomScores(score);
+  }, [score, updateRoomScores]);
 
   useEffect(() => {
     if (autoAdvanceTimer.current) {
@@ -82,7 +65,22 @@ const Quiz = () => {
       autoAdvanceTimer.current = null;
     }
     if (!quizEnded) setTimeLeft(QUESTION_TIME);
-  }, [currentQuestionIndex, quizEnded, autoAdvanceTimer, quizEnded]);
+  }, [currentQuestionIndex, quizEnded, autoAdvanceTimer]);
+
+  const handleNextQuestion = () => {
+    if (currentQuestionIndex < totalQuestions - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      setShowAnswer(false);
+      setTimeLeft(QUESTION_TIME);
+      setIsCorrectAnswer(false);
+      if (autoAdvanceTimer.current) {
+        clearTimeout(autoAdvanceTimer.current);
+        autoAdvanceTimer.current = null;
+      }
+    } else {
+      setQuizEnded(true);
+    }
+  };
 
   useQuizTimer({
     showAnswer,
@@ -95,28 +93,7 @@ const Quiz = () => {
     setTimeLeft,
     setShowAnswer,
     autoAdvanceTimer,
-    handleNextQuestion: useCallback(() => {
-      if (autoAdvanceTimer.current) {
-        clearTimeout(autoAdvanceTimer.current);
-        autoAdvanceTimer.current = null;
-      }
-      if (currentQuestionIndex < totalQuestions - 1) {
-        setCurrentQuestionIndex(currentQuestionIndex + 1);
-        setShowAnswer(false);
-        setTimeLeft(QUESTION_TIME);
-        setIsCorrectAnswer(false);
-      } else {
-        setQuizEnded(true);
-      }
-    }, [
-      autoAdvanceTimer,
-      currentQuestionIndex,
-      totalQuestions,
-      setCurrentQuestionIndex,
-      setShowAnswer,
-      setQuizEnded,
-      setTimeLeft,
-    ]),
+    handleNextQuestion,
     isCorrectAnswer,
   });
 
@@ -143,10 +120,6 @@ const Quiz = () => {
       });
     }
     setShowAnswer(true);
-  };
-
-  const handleBackToLobby = () => {
-    navigate("/lobby");
   };
 
   return (
@@ -179,31 +152,12 @@ const Quiz = () => {
               </CardContent>
             </Card>
 
-            {showAnswer && (
-              <div className="flex justify-center mt-4">
-                <Button
-                  onClick={() => {
-                    if (currentQuestionIndex < totalQuestions - 1) {
-                      setCurrentQuestionIndex(currentQuestionIndex + 1);
-                      setShowAnswer(false);
-                      setTimeLeft(QUESTION_TIME);
-                      setIsCorrectAnswer(false);
-                      if (autoAdvanceTimer.current) {
-                        clearTimeout(autoAdvanceTimer.current);
-                        autoAdvanceTimer.current = null;
-                      }
-                    } else {
-                      setQuizEnded(true);
-                    }
-                  }}
-                  className="bg-primary hover:bg-primary/90"
-                >
-                  {currentQuestionIndex < totalQuestions - 1
-                    ? "Next Question"
-                    : "See Results"}
-                </Button>
-              </div>
-            )}
+            <QuizAnswerHandler
+              showAnswer={showAnswer}
+              currentQuestionIndex={currentQuestionIndex}
+              totalQuestions={totalQuestions}
+              handleNextQuestion={handleNextQuestion}
+            />
 
             <ScoreBoard scores={getRoomScores()} />
           </div>
