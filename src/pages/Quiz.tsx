@@ -12,12 +12,14 @@ import QuizAnswerHandler from "@/components/QuizAnswerHandler";
 import useQuizState from "@/hooks/useQuizState";
 import useQuizTimer from "@/hooks/useQuizTimer";
 import { useQuiz } from "@/hooks/useQuiz";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const QUESTION_TIME = 20;
 
 const Quiz = () => {
   const location = useLocation();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const searchParams = new URLSearchParams(location.search);
   const roomCode = searchParams.get("room") || "";
   const isHost = searchParams.get("host") === "true" || sessionStorage.getItem("isHost") === "true";
@@ -47,12 +49,10 @@ const Quiz = () => {
   const totalQuestions = questions.length;
   const currentQuestion = questions[currentQuestionIndex];
 
-  // Room validation effect
   useEffect(() => {
     handleRoomValidation();
   }, [handleRoomValidation]);
 
-  // Score update effect
   useEffect(() => {
     updateRoomScores(score);
   }, [score, updateRoomScores]);
@@ -121,7 +121,7 @@ const Quiz = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gray-50">
-      <div className="w-full max-w-3xl">
+      <div className={`w-full ${isMobile ? 'max-w-full' : 'max-w-3xl'}`}>
         <QuizHeader
           roomCode={roomCode}
           playerName={playerName}
@@ -133,12 +133,12 @@ const Quiz = () => {
 
         {!quizEnded ? (
           <div className="space-y-4">
-            <Card className="w-full max-w-2xl quiz-card">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-xl">{currentQuestion.question}</CardTitle>
+            <Card className={`w-full ${isMobile ? 'quiz-card p-2' : 'max-w-2xl quiz-card'}`}>
+              <CardHeader className={`flex flex-row items-center justify-between ${isMobile ? 'p-3' : ''}`}>
+                <CardTitle className={`${isMobile ? 'text-lg' : 'text-xl'}`}>{currentQuestion.question}</CardTitle>
                 <AnimatedTimer timeLeft={timeLeft} totalTime={QUESTION_TIME} />
               </CardHeader>
-              <CardContent className="space-y-2">
+              <CardContent className={`${isMobile ? 'p-2' : 'space-y-2'}`}>
                 <QuizQuestion
                   question={currentQuestion}
                   onAnswer={handleAnswer}
