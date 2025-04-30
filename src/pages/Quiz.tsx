@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -5,7 +6,6 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import QuizQuestion from "@/components/QuizQuestion";
 import AnimatedTimer from "@/components/AnimatedTimer";
 import { useToast } from "@/components/ui/use-toast";
-import ScoreBoard from "@/components/ScoreBoard";
 import QuizHeader from "@/components/QuizHeader";
 import QuizCompletion from "@/components/QuizCompletion";
 import QuizAnswerHandler from "@/components/QuizAnswerHandler";
@@ -44,7 +44,7 @@ const Quiz = () => {
   const [timeLeft, setTimeLeft] = useState(QUESTION_TIME);
   const [isCorrectAnswer, setIsCorrectAnswer] = useState(false);
 
-  const { handleRoomValidation, updateRoomScores, getRoomScores, handleBackToLobby } = useQuiz(roomCode, playerName);
+  const { handleRoomValidation, updateRoomScores, handleBackToLobby } = useQuiz(roomCode, playerName);
 
   const totalQuestions = questions.length;
   const currentQuestion = questions[currentQuestionIndex];
@@ -155,8 +155,6 @@ const Quiz = () => {
               totalQuestions={totalQuestions}
               handleNextQuestion={handleNextQuestion}
             />
-
-            <ScoreBoard scores={getRoomScores()} />
           </div>
         ) : (
           <QuizCompletion

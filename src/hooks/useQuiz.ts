@@ -28,10 +28,6 @@ export function useQuiz(roomCode: string, playerName: string) {
     }
   }, [roomCode, playerName]);
 
-  const getRoomScores = useCallback(() => {
-    return JSON.parse(sessionStorage.getItem(`scores_${roomCode}`) || "[]");
-  }, [roomCode]);
-
   const handleBackToLobby = () => {
     navigate("/lobby");
   };
@@ -39,7 +35,6 @@ export function useQuiz(roomCode: string, playerName: string) {
   return {
     handleRoomValidation,
     updateRoomScores,
-    getRoomScores,
     handleBackToLobby,
   };
 }
