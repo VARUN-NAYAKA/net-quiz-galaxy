@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Users } from "lucide-react";
+import { Users, Trophy, Medal, Award } from "lucide-react";
 
 interface PlayerScore {
   name: string;
@@ -16,6 +16,23 @@ interface ScoreBoardProps {
 const ScoreBoard: React.FC<ScoreBoardProps> = ({ scores }) => {
   // Sort scores in descending order
   const sortedScores = [...scores].sort((a, b) => b.score - a.score);
+
+  const renderMedal = (rank: number) => {
+    if (rank === 1) {
+      return (
+        <Trophy className="w-4 h-4 text-yellow-500" aria-label="Gold medal" />
+      );
+    } else if (rank === 2) {
+      return (
+        <Medal className="w-4 h-4 text-gray-400" aria-label="Silver medal" />
+      );
+    } else if (rank === 3) {
+      return (
+        <Award className="w-4 h-4 text-amber-700" aria-label="Bronze medal" />
+      );
+    }
+    return null;
+  };
 
   return (
     <Card className="w-full mt-4">
@@ -37,7 +54,10 @@ const ScoreBoard: React.FC<ScoreBoardProps> = ({ scores }) => {
           <TableBody>
             {sortedScores.map((player, index) => (
               <TableRow key={player.name}>
-                <TableCell>{index + 1}</TableCell>
+                <TableCell className="flex items-center gap-1">
+                  {index + 1}
+                  {renderMedal(index + 1)}
+                </TableCell>
                 <TableCell>{player.name}</TableCell>
                 <TableCell>{player.score}</TableCell>
               </TableRow>
