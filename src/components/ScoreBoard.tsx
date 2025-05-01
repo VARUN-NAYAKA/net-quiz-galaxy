@@ -20,48 +20,54 @@ const ScoreBoard: React.FC<ScoreBoardProps> = ({ scores }) => {
   const renderMedal = (rank: number) => {
     if (rank === 1) {
       return (
-        <Trophy className="w-4 h-4 text-yellow-500" aria-label="Gold medal" />
+        <Trophy className="w-4 h-4 text-yellow-300" aria-label="Gold medal" />
       );
     } else if (rank === 2) {
       return (
-        <Medal className="w-4 h-4 text-gray-400" aria-label="Silver medal" />
+        <Medal className="w-4 h-4 text-gray-300" aria-label="Silver medal" />
       );
     } else if (rank === 3) {
       return (
-        <Award className="w-4 h-4 text-amber-700" aria-label="Bronze medal" />
+        <Award className="w-4 h-4 text-amber-600" aria-label="Bronze medal" />
       );
     }
     return null;
   };
 
   return (
-    <Card className="w-full mt-4">
+    <Card className="w-full bg-white/10 backdrop-blur border-white/20 text-white">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Users className="h-5 w-5" />
+          <Users className="h-5 w-5 text-yellow-300" />
           Scoreboard
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <Table>
+        <Table className="border-white/20">
           <TableHeader>
-            <TableRow>
-              <TableHead>Rank</TableHead>
-              <TableHead>Player</TableHead>
-              <TableHead>Score</TableHead>
+            <TableRow className="border-white/20">
+              <TableHead className="text-white/80">Rank</TableHead>
+              <TableHead className="text-white/80">Player</TableHead>
+              <TableHead className="text-white/80 text-right">Score</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sortedScores.map((player, index) => (
-              <TableRow key={player.name}>
-                <TableCell className="flex items-center gap-1">
-                  {index + 1}
-                  {renderMedal(index + 1)}
-                </TableCell>
-                <TableCell>{player.name}</TableCell>
-                <TableCell>{player.score}</TableCell>
+            {sortedScores.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={3} className="text-center text-white/60">No scores yet</TableCell>
               </TableRow>
-            ))}
+            ) : (
+              sortedScores.map((player, index) => (
+                <TableRow key={player.name} className="border-white/20 animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
+                  <TableCell className="flex items-center gap-1 text-white">
+                    {index + 1}
+                    {renderMedal(index + 1)}
+                  </TableCell>
+                  <TableCell className="text-white">{player.name}</TableCell>
+                  <TableCell className="text-right text-white">{player.score}</TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </CardContent>

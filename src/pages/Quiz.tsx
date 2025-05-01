@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import QuizQuestion from "@/components/QuizQuestion";
@@ -13,13 +13,13 @@ import useQuizState from "@/hooks/useQuizState";
 import useQuizTimer from "@/hooks/useQuizTimer";
 import { useRealTimeQuiz } from "@/hooks/useRealTimeQuiz";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useRoomPlayers } from "@/hooks/useRoomPlayers";
 import { supabase } from "@/integrations/supabase/client";
 
 const QUESTION_TIME = 20;
 
 const Quiz = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const searchParams = new URLSearchParams(location.search);
@@ -47,7 +47,6 @@ const Quiz = () => {
   const [isCorrectAnswer, setIsCorrectAnswer] = useState(false);
 
   const { validateRoom, updatePlayerScore, leaveRoom, endQuiz } = useRealTimeQuiz(roomCode, playerName);
-  const { players } = useRoomPlayers(roomCode);
 
   const totalQuestions = questions.length;
   const currentQuestion = questions[currentQuestionIndex];
@@ -212,8 +211,8 @@ const Quiz = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gray-50">
-      <div className={`w-full ${isMobile ? 'max-w-full' : 'max-w-3xl'}`}>
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-br from-indigo-600 via-purple-600 to-blue-700">
+      <div className={`w-full ${isMobile ? 'max-w-full' : 'max-w-3xl'} animate-fade-in`}>
         <QuizHeader
           roomCode={roomCode}
           playerName={playerName}
@@ -225,7 +224,7 @@ const Quiz = () => {
 
         {!quizEnded ? (
           <div className="space-y-4">
-            <Card className={`w-full ${isMobile ? 'quiz-card p-2' : 'max-w-2xl quiz-card'}`}>
+            <Card className={`w-full ${isMobile ? 'quiz-card p-2' : 'max-w-2xl quiz-card'} bg-white/10 backdrop-blur border-white/20 text-white animate-scale-in`}>
               <CardHeader className={`flex flex-row items-center justify-between ${isMobile ? 'p-3' : ''}`}>
                 <CardTitle className={`${isMobile ? 'text-lg' : 'text-xl'}`}>{currentQuestion.question}</CardTitle>
                 <AnimatedTimer timeLeft={timeLeft} totalTime={QUESTION_TIME} />
@@ -257,34 +256,11 @@ const Quiz = () => {
           />
         )}
 
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle className="text-xl">Live Scoreboard</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <table className="w-full">
-              <thead>
-                <tr>
-                  <th className="text-left">Player</th>
-                  <th className="text-right">Score</th>
-                </tr>
-              </thead>
-              <tbody>
-                {players.map((player) => (
-                  <tr key={player.id} className={player.name === playerName ? "font-bold" : ""}>
-                    <td>{player.name} {player.is_host ? "(Host)" : ""}</td>
-                    <td className="text-right">{player.score}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </CardContent>
-        </Card>
-
-        <div className="flex justify-between mt-4">
+        <div className="flex justify-between mt-6">
           <Button
             variant="outline"
             onClick={handleBackToLobby}
+            className="border-white/30 bg-white/10 hover:bg-white/30 text-white animate-fade-in"
           >
             Leave Quiz
           </Button>
@@ -293,6 +269,7 @@ const Quiz = () => {
             <Button
               variant="destructive"
               onClick={handleEndQuiz}
+              className="animate-fade-in"
             >
               End Quiz For All
             </Button>
