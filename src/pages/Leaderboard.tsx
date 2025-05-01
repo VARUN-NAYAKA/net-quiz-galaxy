@@ -1,35 +1,81 @@
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Users, Trophy, Award, Medal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
 
-type PlayerScore = { name: string; score: number; roomCode: string };
-
-const getAllScores = (): PlayerScore[] => {
-  const allRooms = JSON.parse(sessionStorage.getItem("quizRooms") || "[]");
-  let scores: PlayerScore[] = [];
-  allRooms.forEach((roomCode: string) => {
-    const roomScores = JSON.parse(sessionStorage.getItem(`scores_${roomCode}`) || "[]");
-    (roomScores || []).forEach((sc: any) =>
-      scores.push({
-        name: sc.name,
-        score: sc.score,
-        roomCode,
-      })
-    );
-  });
-  return scores;
+type PlayerScore = { 
+  id: string;
+  name: string; 
+  score: number; 
+  roomCode?: string;
+  room_id?: string;
 };
 
 const Leaderboard = () => {
   const navigate = useNavigate();
-  const scores = getAllScores();
-  const topScores = [...scores]
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 20);
+  const [isLoading, setIsLoading] = useState(true);
+  const [scores, setScores] = useState<PlayerScore[]>([]);
+  
+  useEffect(() => {
+    const fetchLeaderboard = async () => {
+      setIsLoading(true);
+      try {
+        // Get all players with their scores
+        const { data: playersData, error: playersError } = await supabase
+          .from('players')
+          .select(`
+            id,
+            name,
+            score,
+            room_id,
+            quiz_rooms!inner (
+              code
+            )
+          `)
+          .order('score', { ascending: false });
+        
+        if (playersError) throw playersError;
+        
+        // Format the data
+        const formattedScores: PlayerScore[] = playersData.map(player => ({
+          id: player.id,
+          name: player.name,
+          score: player.score,
+          roomCode: player.quiz_rooms.code
+        }));
+        
+        setScores(formattedScores);
+      } catch (error) {
+        console.error('Error fetching leaderboard:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchLeaderboard();
+    
+    // Set up real-time listener for player score changes
+    const playersChannel = supabase
+      .channel('leaderboard_updates')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'players'
+      }, () => {
+        fetchLeaderboard();
+      })
+      .subscribe();
+      
+    return () => {
+      supabase.removeChannel(playersChannel);
+    };
+  }, []);
+
+  const topScores = scores.slice(0, 20);
 
   const renderMedal = (rank: number) => {
     if (rank === 1) {
@@ -58,7 +104,9 @@ const Leaderboard = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {topScores.length === 0 ? (
+          {isLoading ? (
+            <div className="text-center text-muted-foreground">Loading scores...</div>
+          ) : topScores.length === 0 ? (
             <div className="text-center text-muted-foreground">No scores yet!</div>
           ) : (
             <table className="w-full text-left">
@@ -72,7 +120,7 @@ const Leaderboard = () => {
               </thead>
               <tbody>
                 {topScores.map((p, i) => (
-                  <tr key={`${p.name}-${p.roomCode}`}>
+                  <tr key={p.id}>
                     <td className="py-1 pl-2 flex items-center gap-1">
                       {i + 1}
                       {renderMedal(i + 1)}

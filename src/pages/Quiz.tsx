@@ -11,8 +11,10 @@ import QuizCompletion from "@/components/QuizCompletion";
 import QuizAnswerHandler from "@/components/QuizAnswerHandler";
 import useQuizState from "@/hooks/useQuizState";
 import useQuizTimer from "@/hooks/useQuizTimer";
-import { useQuiz } from "@/hooks/useQuiz";
+import { useRealTimeQuiz } from "@/hooks/useRealTimeQuiz";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useRoomPlayers } from "@/hooks/useRoomPlayers";
+import { supabase } from "@/integrations/supabase/client";
 
 const QUESTION_TIME = 20;
 
@@ -44,18 +46,19 @@ const Quiz = () => {
   const [timeLeft, setTimeLeft] = useState(QUESTION_TIME);
   const [isCorrectAnswer, setIsCorrectAnswer] = useState(false);
 
-  const { handleRoomValidation, updateRoomScores, handleBackToLobby } = useQuiz(roomCode, playerName);
+  const { validateRoom, updatePlayerScore, leaveRoom, endQuiz } = useRealTimeQuiz(roomCode, playerName);
+  const { players } = useRoomPlayers(roomCode);
 
   const totalQuestions = questions.length;
   const currentQuestion = questions[currentQuestionIndex];
 
   useEffect(() => {
-    handleRoomValidation();
-  }, [handleRoomValidation]);
+    validateRoom();
+  }, [validateRoom]);
 
   useEffect(() => {
-    updateRoomScores(score);
-  }, [score, updateRoomScores]);
+    updatePlayerScore(score);
+  }, [score, updatePlayerScore]);
 
   useEffect(() => {
     if (autoAdvanceTimer.current) {
@@ -65,18 +68,68 @@ const Quiz = () => {
     if (!quizEnded) setTimeLeft(QUESTION_TIME);
   }, [currentQuestionIndex, quizEnded, autoAdvanceTimer]);
 
+  // Set up channel for synchronizing quiz state across clients
+  useEffect(() => {
+    if (!roomCode) return;
+
+    const channel = supabase.channel(`quiz_state_${roomCode}`)
+      .on('broadcast', { event: 'quiz_update' }, (payload) => {
+        const { currentQuestionIndex, showAnswer, quizEnded } = payload.payload;
+        
+        // Only non-hosts should follow the host's state
+        if (!isHost) {
+          setCurrentQuestionIndex(currentQuestionIndex);
+          setShowAnswer(showAnswer);
+          setQuizEnded(quizEnded);
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [roomCode, isHost, setCurrentQuestionIndex, setShowAnswer, setQuizEnded]);
+
   const handleNextQuestion = () => {
     if (currentQuestionIndex < totalQuestions - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      const nextIndex = currentQuestionIndex + 1;
+      setCurrentQuestionIndex(nextIndex);
       setShowAnswer(false);
       setTimeLeft(QUESTION_TIME);
       setIsCorrectAnswer(false);
+      
       if (autoAdvanceTimer.current) {
         clearTimeout(autoAdvanceTimer.current);
         autoAdvanceTimer.current = null;
       }
+      
+      // If host, broadcast the state change
+      if (isHost) {
+        supabase.channel(`quiz_state_${roomCode}`).send({
+          type: 'broadcast',
+          event: 'quiz_update',
+          payload: {
+            currentQuestionIndex: nextIndex,
+            showAnswer: false,
+            quizEnded: false
+          }
+        });
+      }
     } else {
       setQuizEnded(true);
+      
+      // If host, broadcast quiz ended
+      if (isHost) {
+        supabase.channel(`quiz_state_${roomCode}`).send({
+          type: 'broadcast',
+          event: 'quiz_update',
+          payload: {
+            currentQuestionIndex,
+            showAnswer: true,
+            quizEnded: true
+          }
+        });
+      }
     }
   };
 
@@ -117,6 +170,45 @@ const Quiz = () => {
       });
     }
     setShowAnswer(true);
+    
+    // If host, broadcast the state change
+    if (isHost) {
+      supabase.channel(`quiz_state_${roomCode}`).send({
+        type: 'broadcast',
+        event: 'quiz_update',
+        payload: {
+          currentQuestionIndex,
+          showAnswer: true,
+          quizEnded: false
+        }
+      });
+    }
+  };
+
+  const handleBackToLobby = () => {
+    leaveRoom();
+  };
+
+  const handleRestartQuizWithBroadcast = () => {
+    handleRestartQuiz();
+    
+    // If host, broadcast the restart
+    if (isHost) {
+      supabase.channel(`quiz_state_${roomCode}`).send({
+        type: 'broadcast',
+        event: 'quiz_update',
+        payload: {
+          currentQuestionIndex: 0,
+          showAnswer: false,
+          quizEnded: false
+        }
+      });
+    }
+  };
+
+  const handleEndQuiz = () => {
+    endQuiz();
+    handleBackToLobby();
   };
 
   return (
@@ -160,18 +252,52 @@ const Quiz = () => {
           <QuizCompletion
             score={score}
             totalQuestions={totalQuestions}
-            onRestart={handleRestartQuiz}
+            onRestart={handleRestartQuizWithBroadcast}
             onBackToLobby={handleBackToLobby}
           />
         )}
 
-        <Button
-          variant="link"
-          onClick={handleBackToLobby}
-          className="mt-4"
-        >
-          Leave Quiz
-        </Button>
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle className="text-xl">Live Scoreboard</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <table className="w-full">
+              <thead>
+                <tr>
+                  <th className="text-left">Player</th>
+                  <th className="text-right">Score</th>
+                </tr>
+              </thead>
+              <tbody>
+                {players.map((player) => (
+                  <tr key={player.id} className={player.name === playerName ? "font-bold" : ""}>
+                    <td>{player.name} {player.is_host ? "(Host)" : ""}</td>
+                    <td className="text-right">{player.score}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </CardContent>
+        </Card>
+
+        <div className="flex justify-between mt-4">
+          <Button
+            variant="outline"
+            onClick={handleBackToLobby}
+          >
+            Leave Quiz
+          </Button>
+          
+          {isHost && (
+            <Button
+              variant="destructive"
+              onClick={handleEndQuiz}
+            >
+              End Quiz For All
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );
