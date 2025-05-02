@@ -75,7 +75,7 @@ const Index = () => {
             onClick={() => navigate('/leaderboard')}
             size="lg"
             variant="outline"
-            className="text-lg border-white text-white hover:bg-white/20 px-8 py-6"
+            className="text-lg border-white text-white hover:bg-white/20 bg-white/10 backdrop-blur px-8 py-6"
           >
             View Leaderboard
           </Button>

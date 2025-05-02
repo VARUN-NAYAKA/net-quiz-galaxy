@@ -25,7 +25,7 @@ const CreateRoomForm = () => {
       setIsAuthenticated(!!session);
       
       if (session?.user) {
-        // Set a default nickname if the user is already authenticated
+        // Set a default nickname
         setNickname(session.user.id.slice(0, 8) || 'Host');
       }
     };
@@ -78,20 +78,20 @@ const CreateRoomForm = () => {
     setAuthLoading(true);
     
     try {
-      // Generate a random email for anonymous authentication
-      const randomEmail = `user_${Math.random().toString(36).substring(2, 15)}@example.com`;
+      // Generate a random user ID for anonymous authentication
+      const userId = `user_${Math.random().toString(36).substring(2, 15)}`;
       
-      // Sign up with the random email and provided password
+      // Sign up with the generated user ID and provided password
       const { error, data } = await supabase.auth.signUp({
-        email: randomEmail,
+        email: `${userId}@networkquiz.com`,
         password
       });
       
       if (error) throw error;
       
-      // Try to sign in immediately since we don't need email verification
+      // Try to sign in immediately since we don't need email verification for this simplified flow
       const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: randomEmail,
+        email: `${userId}@networkquiz.com`,
         password
       });
       

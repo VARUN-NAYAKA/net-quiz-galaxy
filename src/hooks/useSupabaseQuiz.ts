@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -33,7 +33,9 @@ export function useSupabaseQuiz() {
       
       const roomCode = generateRoomCode();
       
-      // Insert room into database with RLS bypass
+      console.log("Creating room with host_id:", session.user.id);
+      
+      // Insert room into database
       const { data: roomData, error: roomError } = await supabase
         .from('quiz_rooms')
         .insert({
@@ -48,6 +50,8 @@ export function useSupabaseQuiz() {
         console.error("Error creating room:", roomError);
         throw roomError;
       }
+
+      console.log("Room created:", roomData);
 
       // Insert host player into database
       const { error: playerError } = await supabase
@@ -84,7 +88,7 @@ export function useSupabaseQuiz() {
   };
 
   // Join an existing quiz room
-  const joinRoom = async (nickname: string, roomCode: string) => {
+  const joinRoom = useCallback(async (nickname: string, roomCode: string) => {
     setIsLoading(true);
     try {
       // Find room by code
@@ -142,7 +146,7 @@ export function useSupabaseQuiz() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [navigate, toast]);
 
   // Get all available rooms
   const getAvailableRooms = async () => {
