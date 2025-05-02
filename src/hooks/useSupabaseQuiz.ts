@@ -17,16 +17,29 @@ export function useSupabaseQuiz() {
   // Create a new quiz room
   const createRoom = async (nickname: string, quizType: string) => {
     setIsLoading(true);
+    
     try {
+      // Check if user is authenticated
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: "Authentication required",
+          description: "Please sign in to create a room.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+      
       const roomCode = generateRoomCode();
       
-      // Insert room into database
+      // Insert room into database - use the authenticated user's ID
       const { data: roomData, error: roomError } = await supabase
         .from('quiz_rooms')
         .insert({
           code: roomCode,
           quiz_type: quizType,
-          host_id: nickname, // Using nickname as host_id for simplicity
+          host_id: session.user.id, // Use authenticated user ID
         })
         .select()
         .single();

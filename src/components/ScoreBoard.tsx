@@ -36,7 +36,7 @@ const ScoreBoard: React.FC<ScoreBoardProps> = ({ scores }) => {
 
   return (
     <Card className="w-full bg-white/10 backdrop-blur border-white/20 text-white">
-      <CardHeader>
+      <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2">
           <Users className="h-5 w-5 text-yellow-300" />
           Scoreboard

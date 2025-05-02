@@ -12,6 +12,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
+import { Gamepad2, Trophy, Settings } from "lucide-react";
+import ManageRooms from "@/components/ManageRooms";
 
 const QuizLobby = () => {
   const [activeTab, setActiveTab] = useState("join");
@@ -167,9 +169,19 @@ const QuizLobby = () => {
       <div className="w-full max-w-6xl">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-white">NetworkQuiz</h1>
-          <Button onClick={() => navigate('/')} variant="outline" className="bg-white/10 backdrop-blur text-white border-white/20 hover:bg-white/20">
-            Back to Home
-          </Button>
+          <div className="flex gap-3">
+            <Button 
+              onClick={() => navigate('/leaderboard')} 
+              variant="outline"
+              className="bg-white/10 backdrop-blur text-white border-white/20 hover:bg-white/20 animate-fade-in flex items-center gap-2"
+            >
+              <Trophy className="w-4 h-4" />
+              View Leaderboard
+            </Button>
+            <Button onClick={() => navigate('/')} variant="outline" className="bg-white/10 backdrop-blur text-white border-white/20 hover:bg-white/20">
+              Back to Home
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in">
@@ -177,7 +189,10 @@ const QuizLobby = () => {
           <div>
             <Card className="bg-white/10 backdrop-blur border-white/20 text-white animate-scale-in">
               <CardHeader>
-                <CardTitle className="text-2xl">Quiz Game</CardTitle>
+                <CardTitle className="text-2xl flex items-center gap-2">
+                  <Gamepad2 className="w-5 h-5 text-indigo-300" />
+                  Quiz Game
+                </CardTitle>
                 <CardDescription className="text-white/80">
                   Join an existing game or create your own
                 </CardDescription>
@@ -207,7 +222,10 @@ const QuizLobby = () => {
           <div>
             <Card className="bg-white/10 backdrop-blur border-white/20 text-white animate-scale-in transition-all duration-300">
               <CardHeader>
-                <CardTitle className="text-2xl">Available Rooms</CardTitle>
+                <CardTitle className="text-2xl flex items-center gap-2">
+                  <Gamepad2 className="w-5 h-5 text-indigo-300" />
+                  Available Rooms
+                </CardTitle>
                 <CardDescription className="text-white/80">
                   Quick join an existing game room
                 </CardDescription>
@@ -239,7 +257,23 @@ const QuizLobby = () => {
 
           {/* Right column - Top Scores */}
           <div className="animate-scale-in transition-all duration-500">
-            <ScoreBoard scores={topScores} />
+            <Tabs defaultValue="scores">
+              <TabsList className="w-full grid grid-cols-2 bg-white/20 text-white">
+                <TabsTrigger value="scores" className="data-[state=active]:bg-white/30 data-[state=active]:text-white">
+                  Top Scores
+                </TabsTrigger>
+                <TabsTrigger value="manage" className="data-[state=active]:bg-white/30 data-[state=active]:text-white flex items-center gap-1">
+                  <Settings className="w-4 h-4" />
+                  Manage Rooms
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="scores" className="mt-3">
+                <ScoreBoard scores={topScores} />
+              </TabsContent>
+              <TabsContent value="manage" className="mt-3">
+                <ManageRooms />
+              </TabsContent>
+            </Tabs>
           </div>
         </div>
       </div>
