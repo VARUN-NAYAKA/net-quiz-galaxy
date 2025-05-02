@@ -15,7 +15,7 @@ export function useSupabaseQuiz() {
   };
 
   // Create a new quiz room
-  const createRoom = async (nickname: string, quizType: string) => {
+  const createRoom = async (nickname: string, quizType: string, password: string) => {
     setIsLoading(true);
     
     try {
@@ -35,13 +35,14 @@ export function useSupabaseQuiz() {
       
       console.log("Creating room with host_id:", session.user.id);
       
-      // Insert room into database
+      // Insert room into database with password
       const { data: roomData, error: roomError } = await supabase
         .from('quiz_rooms')
         .insert({
           code: roomCode,
           quiz_type: quizType,
           host_id: session.user.id,
+          password: password, // Store the room password
         })
         .select()
         .single();
@@ -148,6 +149,24 @@ export function useSupabaseQuiz() {
     }
   }, [navigate, toast]);
 
+  // Verify room password
+  const verifyRoomPassword = async (roomCode: string, password: string): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase
+        .from('quiz_rooms')
+        .select('password')
+        .eq('code', roomCode)
+        .single();
+      
+      if (error) throw error;
+      
+      return data.password === password;
+    } catch (error) {
+      console.error("Error verifying room password:", error);
+      return false;
+    }
+  };
+
   // Get all available rooms
   const getAvailableRooms = async () => {
     try {
@@ -181,6 +200,7 @@ export function useSupabaseQuiz() {
     createRoom,
     joinRoom,
     getAvailableRooms,
+    verifyRoomPassword,
     isLoading
   };
 }
