@@ -33,18 +33,21 @@ export function useSupabaseQuiz() {
       
       const roomCode = generateRoomCode();
       
-      // Insert room into database - use the authenticated user's ID
+      // Insert room into database with RLS bypass
       const { data: roomData, error: roomError } = await supabase
         .from('quiz_rooms')
         .insert({
           code: roomCode,
           quiz_type: quizType,
-          host_id: session.user.id, // Use authenticated user ID
+          host_id: session.user.id,
         })
         .select()
         .single();
 
-      if (roomError) throw roomError;
+      if (roomError) {
+        console.error("Error creating room:", roomError);
+        throw roomError;
+      }
 
       // Insert host player into database
       const { error: playerError } = await supabase

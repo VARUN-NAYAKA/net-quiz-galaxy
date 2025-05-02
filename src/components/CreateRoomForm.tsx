@@ -16,9 +16,7 @@ const CreateRoomForm = () => {
   const { toast } = useToast();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
-  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLogin, setIsLogin] = useState(true);
   const [authLoading, setAuthLoading] = useState(false);
 
   useEffect(() => {
@@ -27,7 +25,8 @@ const CreateRoomForm = () => {
       setIsAuthenticated(!!session);
       
       if (session?.user) {
-        setNickname(session.user.email?.split('@')[0] || '');
+        // Set a default nickname if the user is already authenticated
+        setNickname(session.user.id.slice(0, 8) || 'Host');
       }
     };
     
@@ -37,7 +36,7 @@ const CreateRoomForm = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setIsAuthenticated(!!session);
       if (session?.user) {
-        setNickname(session.user.email?.split('@')[0] || '');
+        setNickname(session.user.id.slice(0, 8) || 'Host');
       }
     });
     
@@ -67,10 +66,10 @@ const CreateRoomForm = () => {
   };
   
   const handleAuth = async () => {
-    if (!email || !password) {
+    if (!password) {
       toast({
-        title: "Missing fields",
-        description: "Please enter both email and password.",
+        title: "Missing password",
+        description: "Please enter a password.",
         variant: "destructive"
       });
       return;
@@ -79,36 +78,29 @@ const CreateRoomForm = () => {
     setAuthLoading(true);
     
     try {
-      if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password
-        });
-        
-        if (error) throw error;
-        
-        toast({
-          title: "Login successful",
-          description: "You've been logged in successfully.",
-        });
-      } else {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              nickname
-            }
-          }
-        });
-        
-        if (error) throw error;
-        
-        toast({
-          title: "Account created",
-          description: "Your account has been created successfully.",
-        });
-      }
+      // Generate a random email for anonymous authentication
+      const randomEmail = `user_${Math.random().toString(36).substring(2, 15)}@example.com`;
+      
+      // Sign up with the random email and provided password
+      const { error, data } = await supabase.auth.signUp({
+        email: randomEmail,
+        password
+      });
+      
+      if (error) throw error;
+      
+      // Try to sign in immediately since we don't need email verification
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: randomEmail,
+        password
+      });
+      
+      if (signInError) throw signInError;
+      
+      toast({
+        title: "Authentication successful",
+        description: "You can now create quiz rooms.",
+      });
       
       setShowAuthDialog(false);
     } catch (error: any) {
@@ -183,25 +175,12 @@ const CreateRoomForm = () => {
       <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
         <DialogContent className="bg-white/10 backdrop-blur-lg border-white/30 text-white">
           <DialogHeader>
-            <DialogTitle>{isLogin ? "Sign In" : "Create Account"}</DialogTitle>
+            <DialogTitle>Create Host Account</DialogTitle>
             <DialogDescription className="text-white/70">
-              {isLogin 
-                ? "Sign in to create and manage quiz rooms" 
-                : "Create an account to start hosting quizzes"}
+              Set a password to create and manage quiz rooms
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <div>
-              <Label htmlFor="email" className="text-white">Email</Label>
-              <Input 
-                id="email" 
-                type="email"
-                value={email} 
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                className="mt-1 bg-white/20 border-white/30 text-white placeholder:text-white/50"
-              />
-            </div>
             <div>
               <Label htmlFor="password" className="text-white">Password</Label>
               <Input 
@@ -209,7 +188,7 @@ const CreateRoomForm = () => {
                 type="password"
                 value={password} 
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
+                placeholder="Enter a password"
                 className="mt-1 bg-white/20 border-white/30 text-white placeholder:text-white/50"
               />
             </div>
@@ -220,15 +199,7 @@ const CreateRoomForm = () => {
               className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
               disabled={authLoading}
             >
-              {authLoading ? "Processing..." : isLogin ? "Sign In" : "Create Account"}
-            </Button>
-            <Button 
-              type="button" 
-              variant="link" 
-              onClick={() => setIsLogin(!isLogin)} 
-              className="text-white/80 hover:text-white"
-            >
-              {isLogin ? "Don't have an account? Create one" : "Already have an account? Sign in"}
+              {authLoading ? "Processing..." : "Create Host Account"}
             </Button>
           </DialogFooter>
         </DialogContent>

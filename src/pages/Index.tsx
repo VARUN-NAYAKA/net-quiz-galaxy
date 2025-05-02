@@ -62,11 +62,11 @@ const Index = () => {
           </Card>
         </div>
         
-        <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button
             onClick={() => navigate('/lobby')}
             size="lg"
-            className="text-lg bg-white text-primary hover:bg-white/90 shadow-lg px-8 py-6"
+            className="text-lg bg-white text-indigo-700 hover:bg-white/90 shadow-lg px-8 py-6"
           >
             Start Quiz
           </Button>
@@ -75,7 +75,7 @@ const Index = () => {
             onClick={() => navigate('/leaderboard')}
             size="lg"
             variant="outline"
-            className="text-lg border-white text-white hover:bg-white/20 ml-4 px-8 py-6"
+            className="text-lg border-white text-white hover:bg-white/20 px-8 py-6"
           >
             View Leaderboard
           </Button>
