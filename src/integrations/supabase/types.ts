@@ -54,6 +54,7 @@ export type Database = {
           host_id: string
           id: string
           is_active: boolean
+          password: string | null
           quiz_type: string
         }
         Insert: {
@@ -62,6 +63,7 @@ export type Database = {
           host_id: string
           id?: string
           is_active?: boolean
+          password?: string | null
           quiz_type: string
         }
         Update: {
@@ -70,6 +72,7 @@ export type Database = {
           host_id?: string
           id?: string
           is_active?: boolean
+          password?: string | null
           quiz_type?: string
         }
         Relationships: []

