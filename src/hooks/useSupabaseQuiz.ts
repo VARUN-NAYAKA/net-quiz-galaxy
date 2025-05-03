@@ -148,8 +148,7 @@ export function useSupabaseQuiz() {
       
       if (error) throw error;
       
-      // The password column now exists in the database, but the TypeScript types
-      // may not have been updated yet. We'll still use type checking for safety.
+      // Check if room exists and password matches
       if (!data) {
         console.error("Room not found");
         return false;

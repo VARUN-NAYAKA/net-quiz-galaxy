@@ -85,6 +85,10 @@ const Index = () => {
       <div className="mt-16 text-center text-white/60 text-sm">
         Challenge your networking knowledge with friends or learn solo!
       </div>
+
+      <div className="mt-4 text-center text-white/80 text-lg font-medium">
+        Welcome to our CN mini project
+      </div>
     </div>
   );
 };

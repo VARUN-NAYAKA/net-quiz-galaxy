@@ -1,76 +1,57 @@
-
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useToast } from '@/components/ui/use-toast';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { useSupabaseQuiz } from '@/hooks/useSupabaseQuiz';
+import { useToast } from "@/components/ui/use-toast";
 
 const JoinRoomForm = () => {
-  const [roomCode, setRoomCode] = useState('');
   const [nickname, setNickname] = useState('');
+  const [roomCode, setRoomCode] = useState('');
   const { joinRoom, isLoading } = useSupabaseQuiz();
   const { toast } = useToast();
 
-  const handleJoinRoom = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!roomCode.trim()) {
+  const handleJoinRoom = async () => {
+    if (!nickname.trim() || !roomCode.trim()) {
       toast({
-        title: "Room code required",
-        description: "Please enter a valid room code to join.",
-        variant: "destructive"
+        title: "Error",
+        description: "Please enter both a nickname and a room code.",
+        variant: "destructive",
       });
       return;
     }
 
-    if (!nickname.trim()) {
-      toast({
-        title: "Nickname required",
-        description: "Please enter a nickname to join the game.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    joinRoom(nickname, roomCode);
+    await joinRoom(nickname, roomCode);
   };
 
   return (
-    <form onSubmit={handleJoinRoom} className="space-y-4 animate-fade-in">
+    <div className="grid gap-4">
       <div>
-        <Label htmlFor="roomCode" className="text-white">Room Code</Label>
-        <Input 
-          id="roomCode"
-          placeholder="Enter 6-digit room code" 
-          value={roomCode}
-          onChange={(e) => setRoomCode(e.target.value)}
-          maxLength={6}
-          className="mt-1 bg-white/20 border-white/30 text-white placeholder:text-white/50"
-        />
-      </div>
-      
-      <div>
-        <Label htmlFor="nickname" className="text-white">Your Nickname</Label>
-        <Input 
+        <Label htmlFor="nickname">Nickname</Label>
+        <Input
           id="nickname"
-          placeholder="Enter your nickname" 
+          placeholder="Enter your nickname"
           value={nickname}
           onChange={(e) => setNickname(e.target.value)}
-          maxLength={20}
-          className="mt-1 bg-white/20 border-white/30 text-white placeholder:text-white/50"
+          className="bg-white/20 border-white/30 text-white placeholder:text-white/50"
         />
       </div>
-      
-      <Button 
-        type="submit" 
-        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white transition-all duration-200"
-        disabled={isLoading}
-      >
-        {isLoading ? "Joining..." : "Join Quiz Room"}
+      <div>
+        <Label htmlFor="roomCode">Room Code</Label>
+        <Input
+          id="roomCode"
+          placeholder="Enter room code"
+          value={roomCode}
+          onChange={(e) => setRoomCode(e.target.value)}
+          className="bg-white/20 border-white/30 text-white placeholder:text-white/50"
+        />
+      </div>
+      <Button onClick={handleJoinRoom} disabled={isLoading} className="bg-indigo-600 hover:bg-indigo-700 text-white">
+        {isLoading ? "Joining..." : "Join Room"}
       </Button>
-    </form>
+    </div>
   );
 };
 
 export default JoinRoomForm;
+
