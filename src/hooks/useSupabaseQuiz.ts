@@ -19,21 +19,9 @@ export function useSupabaseQuiz() {
     setIsLoading(true);
     
     try {
-      // Check if user is authenticated
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast({
-          title: "Authentication required",
-          description: "Please sign in to create a room.",
-          variant: "destructive",
-        });
-        setIsLoading(false);
-        return;
-      }
-      
+      // Generate a host ID (simple random string) since we're not using email auth
+      const hostId = `host_${Math.random().toString(36).substring(2, 15)}`;
       const roomCode = generateRoomCode();
-      
-      console.log("Creating room with host_id:", session.user.id);
       
       // Insert room into database with password
       const { data: roomData, error: roomError } = await supabase
@@ -41,7 +29,7 @@ export function useSupabaseQuiz() {
         .insert({
           code: roomCode,
           quiz_type: quizType,
-          host_id: session.user.id,
+          host_id: hostId,
           password: password, // Store the room password
         })
         .select()
@@ -154,12 +142,13 @@ export function useSupabaseQuiz() {
     try {
       const { data, error } = await supabase
         .from('quiz_rooms')
-        .select('password')
+        .select('*')
         .eq('code', roomCode)
         .single();
       
       if (error) throw error;
       
+      // Compare the provided password with the stored password
       return data.password === password;
     } catch (error) {
       console.error("Error verifying room password:", error);

@@ -19,6 +19,13 @@ const AnimatedTimer: React.FC<AnimatedTimerProps> = ({ timeLeft, totalTime }) =>
     return "text-red-400";
   };
   
+  // Get background color for progress bar based on time left
+  const getProgressColor = () => {
+    if (timePercentage > 60) return "bg-green-400";
+    if (timePercentage > 30) return "bg-yellow-400";
+    return "bg-red-400";
+  };
+  
   return (
     <div className="flex flex-col space-y-1">
       <div className="flex items-center justify-between">
@@ -30,10 +37,7 @@ const AnimatedTimer: React.FC<AnimatedTimerProps> = ({ timeLeft, totalTime }) =>
       
       <Progress 
         value={timePercentage} 
-        className="h-2 bg-gray-700"
-        style={{
-          "--tw-bg-opacity": "0.3",
-        }}
+        className={`h-3 bg-gray-700 ${getProgressColor()} bg-opacity-30`}
       />
     </div>
   );
