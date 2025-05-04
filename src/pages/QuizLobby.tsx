@@ -36,6 +36,7 @@ const QuizLobby = () => {
           .select(`
             code,
             host_id,
+            is_active,
             players!inner(name, is_host)
           `)
           .eq('is_active', true)
@@ -114,11 +115,15 @@ const QuizLobby = () => {
         .from('quiz_rooms')
         .select('*')
         .eq('code', selectedRoom)
-        .eq('is_active', true)
         .single();
 
       if (roomError) {
-        throw new Error("Room not found or no longer active");
+        throw new Error("Room not found");
+      }
+      
+      // Check if room is active
+      if (!room.is_active) {
+        throw new Error("This room is currently suspended and not accepting new players");
       }
 
       // Check if player with same name already exists in room
@@ -275,6 +280,11 @@ const QuizLobby = () => {
               </TabsContent>
             </Tabs>
           </div>
+        </div>
+        
+        {/* Welcome message at the bottom */}
+        <div className="mt-8 text-center animate-fade-in">
+          <p className="text-white text-lg font-medium">Welcome to our CN mini project</p>
         </div>
       </div>
 

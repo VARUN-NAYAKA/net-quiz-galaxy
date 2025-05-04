@@ -153,8 +153,8 @@ const ManageRooms = () => {
       if (error) throw error;
 
       toast({
-        title: newState ? "Room Activated" : "Room Deactivated",
-        description: `Quiz room ${selectedRoom.code} is now ${newState ? "active" : "inactive"}.`,
+        title: newState ? "Room Activated" : "Room Suspended",
+        description: `Quiz room ${selectedRoom.code} is now ${newState ? "active" : "suspended"}.`,
       });
       
       // Update the selected room state
@@ -195,6 +195,9 @@ const ManageRooms = () => {
 
       setShowRoomDetails(false);
       setShowDeleteConfirm(false);
+      
+      // Refresh room list
+      fetchUserRooms();
     } catch (error: any) {
       toast({
         title: "Error",

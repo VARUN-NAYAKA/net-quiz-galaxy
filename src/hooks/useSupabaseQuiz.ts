@@ -85,11 +85,15 @@ export function useSupabaseQuiz() {
         .from('quiz_rooms')
         .select('*')
         .eq('code', roomCode)
-        .eq('is_active', true)
         .single();
 
       if (roomError) {
-        throw new Error("Room not found or no longer active");
+        throw new Error("Room not found");
+      }
+
+      // Check if room is active
+      if (!room.is_active) {
+        throw new Error("This room is currently suspended and not accepting new players");
       }
 
       // Check if player with same name already exists in room
