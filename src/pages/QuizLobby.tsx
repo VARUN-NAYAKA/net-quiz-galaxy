@@ -12,8 +12,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { Gamepad2, Trophy, Settings } from "lucide-react";
+import { Gamepad2, Trophy, Settings, Home } from "lucide-react";
 import ManageRooms from "@/components/ManageRooms";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const QuizLobby = () => {
   const [activeTab, setActiveTab] = useState("join");
@@ -25,6 +26,7 @@ const QuizLobby = () => {
   const [playerName, setPlayerName] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     // Fetch available rooms
@@ -172,9 +174,9 @@ const QuizLobby = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-600 via-purple-600 to-blue-700 flex flex-col items-center p-4">
       <div className="w-full max-w-6xl">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
           <h1 className="text-3xl font-bold text-white">NetworkQuiz</h1>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3 justify-center">
             <Button 
               onClick={() => navigate('/leaderboard')} 
               variant="outline"
@@ -183,7 +185,12 @@ const QuizLobby = () => {
               <Trophy className="w-4 h-4" />
               View Leaderboard
             </Button>
-            <Button onClick={() => navigate('/')} variant="outline" className="bg-white/10 backdrop-blur text-white border-white/20 hover:bg-white/20">
+            <Button 
+              onClick={() => navigate('/')} 
+              variant="outline" 
+              className="bg-white/10 backdrop-blur text-white border-white/20 hover:bg-white/20 flex items-center gap-2"
+            >
+              <Home className="w-4 h-4" />
               Back to Home
             </Button>
           </div>
@@ -262,23 +269,43 @@ const QuizLobby = () => {
 
           {/* Right column - Top Scores */}
           <div className="animate-scale-in transition-all duration-500">
-            <Tabs defaultValue="scores">
-              <TabsList className="w-full grid grid-cols-2 bg-white/20 text-white">
-                <TabsTrigger value="scores" className="data-[state=active]:bg-white/30 data-[state=active]:text-white">
-                  Top Scores
-                </TabsTrigger>
-                <TabsTrigger value="manage" className="data-[state=active]:bg-white/30 data-[state=active]:text-white flex items-center gap-1">
-                  <Settings className="w-4 h-4" />
-                  Manage Rooms
-                </TabsTrigger>
-              </TabsList>
-              <TabsContent value="scores" className="mt-3">
-                <ScoreBoard scores={topScores} />
-              </TabsContent>
-              <TabsContent value="manage" className="mt-3">
-                <ManageRooms />
-              </TabsContent>
-            </Tabs>
+            {isMobile ? (
+              <Tabs defaultValue="scores">
+                <TabsList className="w-full grid grid-cols-2 bg-white/20 text-white">
+                  <TabsTrigger value="scores" className="data-[state=active]:bg-white/30 data-[state=active]:text-white">
+                    Top Scores
+                  </TabsTrigger>
+                  <TabsTrigger value="manage" className="data-[state=active]:bg-white/30 data-[state=active]:text-white flex items-center gap-1">
+                    <Settings className="w-4 h-4" />
+                    Manage
+                  </TabsTrigger>
+                </TabsList>
+                <TabsContent value="scores" className="mt-3">
+                  <ScoreBoard scores={topScores} />
+                </TabsContent>
+                <TabsContent value="manage" className="mt-3">
+                  <ManageRooms />
+                </TabsContent>
+              </Tabs>
+            ) : (
+              <Tabs defaultValue="scores">
+                <TabsList className="w-full grid grid-cols-2 bg-white/20 text-white">
+                  <TabsTrigger value="scores" className="data-[state=active]:bg-white/30 data-[state=active]:text-white">
+                    Top Scores
+                  </TabsTrigger>
+                  <TabsTrigger value="manage" className="data-[state=active]:bg-white/30 data-[state=active]:text-white flex items-center gap-1">
+                    <Settings className="w-4 h-4" />
+                    Manage Rooms
+                  </TabsTrigger>
+                </TabsList>
+                <TabsContent value="scores" className="mt-3">
+                  <ScoreBoard scores={topScores} />
+                </TabsContent>
+                <TabsContent value="manage" className="mt-3">
+                  <ManageRooms />
+                </TabsContent>
+              </Tabs>
+            )}
           </div>
         </div>
         

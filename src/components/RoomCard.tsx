@@ -36,11 +36,11 @@ const RoomCard = ({ room, onManageClick }: RoomCardProps) => {
             Created: {format(new Date(room.created_at), 'MMM dd, yyyy HH:mm:ss')}
           </p>
         </div>
-        <div className="flex justify-end mt-1">
+        <div className="flex justify-end mt-1 w-full">
           <Button 
             size="sm" 
             variant="default" 
-            className="bg-indigo-600 hover:bg-indigo-700 text-white flex gap-1"
+            className="bg-indigo-600 hover:bg-indigo-700 text-white flex gap-1 w-full sm:w-auto"
             onClick={() => onManageClick(room)}
           >
             <Settings className="w-4 h-4" /> Manage Room
