@@ -7,6 +7,7 @@ export interface Player {
   name: string;
   score: number;
   is_host: boolean;
+  last_active: string; // Added the missing last_active property
 }
 
 export function useRoomPlayers(roomCode: string) {
