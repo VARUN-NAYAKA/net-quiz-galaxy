@@ -5,13 +5,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
-import { useSupabaseQuiz } from '@/hooks/useSupabaseQuiz';
+import { useRoomCreation } from '@/hooks/useRoomCreation';
 
 const CreateRoomForm = () => {
   const [nickname, setNickname] = useState('');
   const [quizType, setQuizType] = useState('networking');
   const [password, setPassword] = useState('');
-  const { createRoom, isLoading } = useSupabaseQuiz();
+  const { createRoom, isLoading } = useRoomCreation();
   const { toast } = useToast();
 
   const handleCreateRoom = (e: React.FormEvent) => {

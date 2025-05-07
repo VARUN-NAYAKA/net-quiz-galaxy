@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { useSupabaseQuiz } from '@/hooks/useSupabaseQuiz';
+import { useRoomManagement } from '@/hooks/useRoomManagement';
 import RoomCard from './RoomCard';
 import PasswordDialog from './PasswordDialog';
 import RoomDetailsDialog from './RoomDetailsDialog';
@@ -36,7 +36,7 @@ const ManageRooms = () => {
   const [showRoomDetails, setShowRoomDetails] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const { toast } = useToast();
-  const { verifyRoomPassword } = useSupabaseQuiz();
+  const { verifyRoomPassword } = useRoomManagement();
   
   useEffect(() => {
     fetchUserRooms();

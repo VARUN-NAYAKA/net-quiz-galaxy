@@ -3,13 +3,13 @@ import React, { useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { useSupabaseQuiz } from '@/hooks/useSupabaseQuiz';
+import { useRoomJoining } from '@/hooks/useRoomJoining';
 import { useToast } from "@/components/ui/use-toast";
 
 const JoinRoomForm = () => {
   const [nickname, setNickname] = useState('');
   const [roomCode, setRoomCode] = useState('');
-  const { joinRoom, isLoading } = useSupabaseQuiz();
+  const { joinRoom, isLoading } = useRoomJoining();
   const { toast } = useToast();
 
   const handleJoinRoom = async () => {

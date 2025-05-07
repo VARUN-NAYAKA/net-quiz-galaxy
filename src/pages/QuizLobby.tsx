@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useRoomJoining } from '@/hooks/useRoomJoining';
 import QuizLobbyHeader from "@/components/QuizLobbyHeader";
 import GameOptionsCard from "@/components/GameOptionsCard";
 import AvailableRoomsList from "@/components/AvailableRoomsList";
@@ -21,6 +21,7 @@ const QuizLobby = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const isMobile = useIsMobile();
+  const { joinRoom } = useRoomJoining();
 
   useEffect(() => {
     // Fetch available rooms
@@ -105,64 +106,7 @@ const QuizLobby = () => {
       return;
     }
 
-    try {
-      // Find room by code
-      const { data: room, error: roomError } = await supabase
-        .from('quiz_rooms')
-        .select('*')
-        .eq('code', selectedRoom)
-        .single();
-
-      if (roomError) {
-        throw new Error("Room not found");
-      }
-      
-      // Check if room is active
-      if (!room.is_active) {
-        throw new Error("This room is currently suspended and not accepting new players");
-      }
-
-      // Check if player with same name already exists in room
-      const { data: existingPlayer, error: playerCheckError } = await supabase
-        .from('players')
-        .select('*')
-        .eq('room_id', room.id)
-        .eq('name', playerName)
-        .maybeSingle();
-
-      if (existingPlayer) {
-        // Update existing player's last_active time
-        await supabase
-          .from('players')
-          .update({ last_active: new Date().toISOString() })
-          .eq('id', existingPlayer.id);
-      } else {
-        // Create new player
-        const { error: playerInsertError } = await supabase
-          .from('players')
-          .insert({
-            room_id: room.id,
-            name: playerName,
-            is_host: false,
-          });
-
-        if (playerInsertError) throw playerInsertError;
-      }
-
-      // Store player info in sessionStorage for easy access
-      sessionStorage.setItem('playerName', playerName);
-      sessionStorage.setItem('roomCode', selectedRoom);
-      sessionStorage.setItem('isHost', 'false');
-
-      navigate(`/quiz?room=${selectedRoom}`);
-    } catch (error: any) {
-      toast({
-        title: "Error joining room",
-        description: error.message,
-        variant: "destructive",
-      });
-      console.error("Error joining room:", error);
-    }
+    await joinRoom(playerName, selectedRoom);
   };
 
   return (
