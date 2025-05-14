@@ -1,7 +1,7 @@
 
-import { useEffect, useCallback } from "react";
+import { useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 
 export function useRealTimeQuiz(roomCode: string, playerName: string) {

@@ -1,7 +1,7 @@
 
 import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 export function useQuiz(roomCode: string, playerName: string) {
   const navigate = useNavigate();
